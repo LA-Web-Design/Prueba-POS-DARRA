@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lector DARRA</title>
+    <!-- Librería para escaneo de códigos de barras -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+      body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background: #f4f4f9; }
+      #reader { width: 100%; max-width: 400px; margin: auto; }
+      #resultado { margin-top: 20px; font-size: 1.2em; font-weight: bold; color: #2e7d32; }
+      .error { color: #c62828 !important; }
+    </style>
+  </head>
+  <body>
+    <h2>Lector de Barras Rápido</h2>
+    <div id="reader"></div>
+    <div id="resultado">Esperando permisos de cámara...</div>
+
+    <script>
+      function onScanSuccess(decodedText, decodedResult) {
+        // Muestra el estado de guardado
+        document.getElementById('resultado').innerText = "Guardando: " + decodedText + "...";
+        
+        // Llamamos a la función de Google Apps Script
+        google.script.run
+          .withSuccessHandler(function(mensaje) {
+            document.getElementById('resultado').innerText = "¡Éxito! " + decodedText;
+            // Vuelve a limpiar el texto a los 2 segundos para seguir escaneando
+            setTimeout(() => {
+              document.getElementById('resultado').innerText = "Apunta la cámara a un código de barras...";
+            }, 2000);
+          })
+          .withFailureHandler(function(error) {
+            document.getElementById('resultado').innerText = "Error al guardar";
+            document.getElementById('resultado').className = "error";
+          })
+          .registrarCodigo(decodedText);
+      }
+
+      // Solicitud directa y forzada de la cámara para evitar bloqueos del navegador
+      Html5Qrcode.getCameras().devices.then(devices => {
+        if (devices && devices.length) {
+          // Selecciona por defecto la cámara trasera si está disponible
+          var cameraId = devices[devices.length - 1].id; 
+          const html5QrCode = new Html5Qrcode("reader");
+          html5QrCode.start(
+            cameraId, 
+            { fps: 10, qrbox: { width: 250, height: 150 } },
+            onScanSuccess
+          ).catch(err => {
+            document.getElementById('resultado').innerText = "Error al iniciar cámara: " + err;
+            document.getElementById('resultado').className = "error";
+          });
+        } else {
+          document.getElementById('resultado').innerText = "No se encontraron cámaras.";
+          document.getElementById('resultado').className = "error";
+        }
+      }).catch(err => {
+        document.getElementById('resultado').innerText = "Permiso de cámara denegado.";
+        document.getElementById('resultado').className = "error";
+      });
+    </script>
+  </body>
+</html>
