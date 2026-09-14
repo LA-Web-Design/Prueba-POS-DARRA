@@ -21,9 +21,31 @@
             border-radius: 8px;
             overflow: hidden;
         }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
+        .container { max-width: 500px; margin: 0 auto; }
+        .manual-box {
+            background: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 10px;
+        }
+        .manual-box input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        .manual-box button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
         }
         #cart-box {
             background: #fff;
@@ -32,64 +54,35 @@
             margin-top: 15px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-            font-size: 14px;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
         th { background-color: #f8f9fa; }
-        .total-box {
-            font-size: 18px;
-            font-weight: bold;
-            text-align: right;
-            margin-top: 15px;
-            color: #2e7d32;
-        }
+        .total-box { font-size: 18px; font-weight: bold; text-align: right; margin-top: 15px; color: #2e7d32; }
         .btn-cobrar {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 15px;
-            font-size: 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-            font-weight: bold;
+            background-color: #28a745; color: white; border: none; padding: 15px;
+            font-size: 18px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold;
         }
         .btn-limpiar {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px;
-            font-size: 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
+            background-color: #dc3545; color: white; border: none; padding: 8px;
+            font-size: 14px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px;
         }
-        #estado {
-            text-align: center;
-            font-weight: bold;
-            margin-top: 10px;
-            color: #007bff;
-        }
+        #estado { text-align: center; font-weight: bold; margin-top: 10px; color: #007bff; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>POS DARRA - Carrito</h2>
+    <h2>POS DARRA</h2>
     
     <!-- Lector de cámara -->
     <div id="reader"></div>
-    <div id="estado">Apunta la cámara al producto...</div>
+    <div id="estado">Apunta la cámara o ingresa el código...</div>
+
+    <!-- Entrada manual de respaldo -->
+    <div class="manual-box">
+        <input type="text" id="codigoManual" placeholder="Escribir código de barras...">
+        <button onclick="agregarManual()">Agregar</button>
+    </div>
 
     <!-- Carrito de compras -->
     <div id="cart-box">
@@ -103,7 +96,7 @@
                 </tr>
             </thead>
             <tbody id="cart-items">
-                <!-- Los productos escaneados se listarán aquí -->
+                <!-- Se listarán los ítems -->
             </tbody>
         </table>
         
@@ -118,19 +111,24 @@
 
 <script>
     const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzX4AyoEyd1FUkibAwu3usYaSHb3Jj0t5t_VawX0lS03olwg1Fzu0ketsD40PtCf6ncVA/exec";
-    
     let carrito = [];
 
     function agregarAlCarrito(codigo) {
-        // Buscamos si el producto ya está en el carrito para sumar cantidad
+        if (!codigo || codigo.trim() === "") return;
         let itemExistente = carrito.find(item => item.codigo === codigo);
         if (itemExistente) {
             itemExistente.cantidad += 1;
+            itemExistente.subtotal = item.cantidad * item.precioUnitario;
         } else {
-            // Como ejemplo base asignamos precio unitario estimativo, luego lo conectamos con la tabla de productos
-            carrito.push({ codigo: codigo, cantidad: 1, precioUnitario: 100 });
+            carrito.push({ codigo: codigo, cantidad: 1, precioUnitario: 100, subtotal: 100 });
         }
         actualizarVistaCarrito();
+    }
+
+    function agregarManual() {
+        let input = document.getElementById('codigoManual');
+        agregarAlCarrito(input.value.trim());
+        input.value = "";
     }
 
     function actualizarVistaCarrito() {
@@ -139,12 +137,11 @@
         let total = 0;
 
         carrito.forEach(item => {
-            let subtotal = item.cantidad * item.precioUnitario;
-            total += subtotal;
+            total += item.subtotal;
             let fila = `<tr>
                 <td>${item.codigo}</td>
                 <td>${item.cantidad}</td>
-                <td>$${subtotal.toFixed(2)}</td>
+                <td>$${item.subtotal.toFixed(2)}</td>
             </tr>`;
             tbody.innerHTML += fila;
         });
@@ -164,9 +161,8 @@
             return;
         }
 
-        document.getElementById('estado').innerText = "Registrando venta en la planilla...";
+        document.getElementById('estado').innerText = "Registrando venta...";
 
-        // Enviamos todo el paquete del carrito a Google Sheets
         fetch(URL_APPS_SCRIPT, {
             method: "POST",
             mode: "no-cors",
@@ -177,7 +173,7 @@
             document.getElementById('estado').innerText = "¡Venta registrada con éxito!";
             vaciarCarrito();
             setTimeout(() => {
-                document.getElementById('estado').innerText = "Apunta la cámara al producto...";
+                document.getElementById('estado').innerText = "Apunta la cámara o ingresa el código...";
             }, 2500);
         })
         .catch(error => {
@@ -186,22 +182,22 @@
         });
     }
 
-    // Inicialización del escáner de cámara
+    // Inicialización de la cámara
     const html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start(
         { facingMode: "environment" }, 
         { fps: 10, qrbox: { width: 220, height: 120 } },
-        (decodedText, decodedResult) => {
+        (decodedText) => {
             html5QrCode.pause();
             agregarAlCarrito(decodedText);
             document.getElementById('estado').innerText = "¡Escaneado: " + decodedText + "!";
             setTimeout(() => { 
                 html5QrCode.resume(); 
-                document.getElementById('estado').innerText = "Apunta la cámara al producto...";
+                document.getElementById('estado').innerText = "Apunta la cámara o ingresa el código...";
             }, 2500);
         }
     ).catch(err => {
-        document.getElementById('estado').innerText = "Error al iniciar cámara";
+        document.getElementById('estado').innerText = "Cámara no disponible (usar tipeo manual)";
         console.error(err);
     });
 </script>
