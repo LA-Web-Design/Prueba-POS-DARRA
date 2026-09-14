@@ -66,6 +66,10 @@
             background-color: #dc3545; color: white; border: none; padding: 8px;
             font-size: 14px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px;
         }
+        .btn-eliminar {
+            background-color: #ff4d4f; color: white; border: none; padding: 5px 8px;
+            font-size: 12px; border-radius: 4px; cursor: pointer;
+        }
         #estado { text-align: center; font-weight: bold; margin-top: 10px; color: #007bff; }
     </style>
 </head>
@@ -93,6 +97,7 @@
                     <th>Código</th>
                     <th>Cant.</th>
                     <th>Subtotal</th>
+                    <th>Acción</th>
                 </tr>
             </thead>
             <tbody id="cart-items">
@@ -131,17 +136,23 @@
         input.value = "";
     }
 
+    function eliminarItem(index) {
+        carrito.splice(index, 1);
+        actualizarVistaCarrito();
+    }
+
     function actualizarVistaCarrito() {
         let tbody = document.getElementById('cart-items');
         tbody.innerHTML = "";
         let total = 0;
 
-        carrito.forEach(item => {
+        carrito.forEach((item, index) => {
             total += item.subtotal;
             let fila = `<tr>
                 <td>${item.codigo}</td>
                 <td>${item.cantidad}</td>
                 <td>$${item.subtotal.toFixed(2)}</td>
+                <td><button class="btn-eliminar" onclick="eliminarItem(${index})">X</button></td>
             </tr>`;
             tbody.innerHTML += fila;
         });
