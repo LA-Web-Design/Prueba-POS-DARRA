@@ -3,78 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DARA - Escáner de Mostrador</title>
+    <title>DARA - POS Mostrador</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f6f9;
-            text-align: center;
-            padding: 20px;
             margin: 0;
+            padding: 10px;
+            color: #333;
         }
-        h2 { color: #333; }
+        h2 { text-align: center; color: #222; margin: 10px 0; }
         #reader {
             width: 100%;
-            max-width: 400px;
-            margin: auto;
+            max-width: 350px;
+            margin: 0 auto;
             border-radius: 8px;
             overflow: hidden;
         }
-        #resultado {
-            margin-top: 20px;
-            font-size: 1.2em;
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        #cart-box {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+        th { background-color: #f8f9fa; }
+        .total-box {
+            font-size: 18px;
             font-weight: bold;
+            text-align: right;
+            margin-top: 15px;
             color: #2e7d32;
+        }
+        .btn-cobrar {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .btn-limpiar {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        #estado {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #007bff;
         }
     </style>
 </head>
 <body>
 
-    <h2>POS DARRA</h2>
+<div class="container">
+    <h2>POS DARRA - Carrito</h2>
+    
+    <!-- Lector de cámara -->
     <div id="reader"></div>
-    <div id="resultado">Apunta la cámara a un código de barras...</div>
+    <div id="estado">Apunta la cámara al producto...</div>
 
-    <script>
-        const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzX4AyoEyd1FUkibAwu3usYaSHb3Jj0t5t_VawX0lS03olwg1Fzu0ketsD40PtCf6ncVA/exec";
+    <!-- Carrito de compras -->
+    <div id="cart-box">
+        <h3>Ítems en el Carrito</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Cant.</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="cart-items">
+                <!-- Los productos escaneados se listarán aquí -->
+            </tbody>
+        </table>
+        
+        <div class="total-box">
+            Total: $<span id="cart-total">0.00</span>
+        </div>
 
-        function enviarAlSheets(codigo) {
-            document.getElementById('resultado').innerText = "Guardando: " + codigo + "...";
-            
-            fetch(URL_APPS_SCRIPT, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ codigo: codigo, cantidad: 1 })
-            })
-            .then(() => {
-                document.getElementById('resultado').innerText = "¡Guardado con éxito: " + codigo + "!";
-                setTimeout(() => {
-                    document.getElementById('resultado').innerText = "Apunta la cámara a otro producto...";
-                }, 2000);
-            })
-            .catch(error => {
-                document.getElementById('resultado').innerText = "Error al conectar con la planilla";
-                console.error(error);
-            });
+        <button class="btn-cobrar" onclick="finalizarVenta()">COBRAR / FINALIZAR</button>
+        <button class="btn-limpiar" onclick="vaciarCarrito()">Limpiar Carrito</button>
+    </div>
+</div>
+
+<script>
+    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzX4AyoEyd1FUkibAwu3usYaSHb3Jj0t5t_VawX0lS03olwg1Fzu0ketsD40PtCf6ncVA/exec";
+    
+    let carrito = [];
+
+    function agregarAlCarrito(codigo) {
+        // Buscamos si el producto ya está en el carrito para sumar cantidad
+        let itemExistente = carrito.find(item => item.codigo === codigo);
+        if (itemExistente) {
+            itemExistente.cantidad += 1;
+        } else {
+            // Como ejemplo base asignamos precio unitario estimativo, luego lo conectamos con la tabla de productos
+            carrito.push({ codigo: codigo, cantidad: 1, precioUnitario: 100 });
+        }
+        actualizarVistaCarrito();
+    }
+
+    function actualizarVistaCarrito() {
+        let tbody = document.getElementById('cart-items');
+        tbody.innerHTML = "";
+        let total = 0;
+
+        carrito.forEach(item => {
+            let subtotal = item.cantidad * item.precioUnitario;
+            total += subtotal;
+            let fila = `<tr>
+                <td>${item.codigo}</td>
+                <td>${item.cantidad}</td>
+                <td>$${subtotal.toFixed(2)}</td>
+            </tr>`;
+            tbody.innerHTML += fila;
+        });
+
+        document.getElementById('cart-total').innerText = total.toFixed(2);
+    }
+
+    function vaciarCarrito() {
+        carrito = [];
+        actualizarVistaCarrito();
+        document.getElementById('estado').innerText = "Carrito vaciado.";
+    }
+
+    function finalizarVenta() {
+        if (carrito.length === 0) {
+            alert("El carrito está vacío.");
+            return;
         }
 
-        const html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start(
-            { facingMode: "environment" }, 
-            { fps: 10, qrbox: { width: 250, height: 150 } },
-            (decodedText, decodedResult) => {
-                // Pausa el escáner temporalmente para evitar lecturas repetidas del mismo artículo
-                html5QrCode.pause();
-                enviarAlSheets(decodedText);
-                setTimeout(() => { 
-                    html5QrCode.resume(); 
-                }, 3500);
-            }
-        ).catch(err => {
-            document.getElementById('resultado').innerText = "Error al iniciar cámara";
-            console.error(err);
+        document.getElementById('estado').innerText = "Registrando venta en la planilla...";
+
+        // Enviamos todo el paquete del carrito a Google Sheets
+        fetch(URL_APPS_SCRIPT, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tipo: "venta_carrito", items: carrito })
+        })
+        .then(() => {
+            document.getElementById('estado').innerText = "¡Venta registrada con éxito!";
+            vaciarCarrito();
+            setTimeout(() => {
+                document.getElementById('estado').innerText = "Apunta la cámara al producto...";
+            }, 2500);
+        })
+        .catch(error => {
+            document.getElementById('estado').innerText = "Error al registrar la venta.";
+            console.error(error);
         });
-    </script>
+    }
+
+    // Inicialización del escáner de cámara
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+        { facingMode: "environment" }, 
+        { fps: 10, qrbox: { width: 220, height: 120 } },
+        (decodedText, decodedResult) => {
+            html5QrCode.pause();
+            agregarAlCarrito(decodedText);
+            document.getElementById('estado').innerText = "¡Escaneado: " + decodedText + "!";
+            setTimeout(() => { 
+                html5QrCode.resume(); 
+                document.getElementById('estado').innerText = "Apunta la cámara al producto...";
+            }, 2500);
+        }
+    ).catch(err => {
+        document.getElementById('estado').innerText = "Error al iniciar cámara";
+        console.error(err);
+    });
+</script>
 </body>
 </html>
