@@ -1,74 +1,73 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lector de Barras POS DARRA</title>
+    <title>DARA - Escáner de Mostrador</title>
+    <!-- Librería para lectura de códigos de barras por cámara -->
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-      body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background: #f4f4f9; }
-      #reader { width: 100%; max-width: 400px; margin: auto; }
-      #resultado { margin-top: 20px; font-size: 1.2em; font-weight: bold; color: #2e7d32; }
-      .error { color: #c62828 !important; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h2 { color: #333; }
+        #reader {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #resultado {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+        }
     </style>
-  </head>
-  <body>
-    <h2>Lector POS DARRA</h2>
+</head>
+<body>
+
+    <h2>POS DARA - Escáner</h2>
     <div id="reader"></div>
-    <div id="resultado">Esperando permisos de cámara...</div>
+    <div id="resultado">Apunta la cámara a un código de barras</div>
 
     <script>
-      // ⚠️ REEMPLAZÁ ESTA URL CON TU URL DE APPS SCRIPT TERMINADA EN /exec
-      const URL_APPS_SCRIPT = "https://script.google.com/macros/s/TU_URL_DE_EJEMPLO/exec";
+        // Pegá aquí tu URL de la Web App de Apps Script que ya probamos
+        const urlWebapp = "https://script.google.com/macros/s/AKfycbzX4AyoEyd1FUkibAwu3usYaSHb3Jj0t5t_VawX0lS03olwg1Fzu0ketsD40PtCf6ncVA/exec";
 
-      function enviarAlSheets(codigo) {
-        document.getElementById('resultado').innerText = "Guardando: " + codigo + "...";
-        
-        fetch(URL_APPS_SCRIPT, {
-          method: "POST",
-          mode: "no-cors", // Evita problemas de CORS con Google Apps Script
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ codigo: codigo })
-        })
-        .then(() => {
-          document.getElementById('resultado').innerText = "¡Guardado con éxito: " + codigo + "!";
-          setTimeout(() => {
-            document.getElementById('resultado').innerText = "Apunta la cámara a un código de barras...";
-          }, 2000);
-        })
-        .catch(error => {
-          document.getElementById('resultado').innerText = "Error al conectar con la planilla";
-          document.getElementById('resultado').className = "error";
-        });
-      }
+        function onScanSuccess(decodedText, decodedResult) {
+            document.getElementById('resultado').innerText = "Enviando código: " + decodedText;
 
-      // Inicialización de la cámara con permisos directos de GitHub Pages
-      Html5Qrcode.getCameras().devices.then(devices => {
-        if (devices && devices.length) {
-          var cameraId = devices[devices.length - 1].id; // Toma la cámara trasera
-          const html5QrCode = new Html5Qrcode("reader");
-          html5QrCode.start(
-            cameraId, 
-            { fps: 10, qrbox: { width: 250, height: 150 } },
-            (decodedText, decodedResult) => {
-              // Pausa brevemente para evitar envíos múltiples del mismo código
-              html5QrCode.pause();
-              enviarAlSheets(decodedText);
-              setTimeout(() => { html5QrCode.resume(); }, 3000);
-            }
-          ).catch(err => {
-            document.getElementById('resultado').innerText = "Error al iniciar cámara";
-            document.getElementById('resultado').className = "error";
-          });
-        } else {
-          document.getElementById('resultado').innerText = "No se detectaron cámaras.";
+            fetch(urlWebapp, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ codigo: decodedText, cantidad: 1 })
+            }).then(() => {
+                document.getElementById('resultado').innerText = "¡Registrado con éxito: " + decodedText + "!";
+                setTimeout(() => {
+                    document.getElementById('resultado').innerText = "Apunta la cámara a un código de barras";
+                }, 2000);
+            }).catch(err => {
+                document.getElementById('resultado').innerText = "Error al enviar el código.";
+                console.error(err);
+            });
         }
-      }).catch(err => {
-        document.getElementById('resultado').innerText = "Permiso de cámara denegado.";
-        document.getElementById('resultado').className = "error";
-      });
+
+        const html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            { fps: 10, qrbox: { width: 250, height: 150 } },
+            onScanSuccess
+        ).catch(err => {
+            alert("No se pudo iniciar la cámara. Asegúrate de dar permisos en el navegador.");
+            console.error(err);
+        });
     </script>
-  </body>
+</body>
 </html>
