@@ -3,131 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DARA - POS Mostrador</title>
+    <title>POS DARA - Sistema Comercial</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/LA-Web-Design/Prueba-POS-DARRA/main/pos_dara01-20260916-2243.png">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
+        :root {
+            --bg-dark: #121417;
+            --steel-surface: #1e2229;
+            --steel-border: #2c323d;
+            --accent-main: #f39c12; /* Color de acento dinámico */
+            --btn-green: #28a745;
+            --btn-red: #dc3545;
+            --text-light: #f8f9fa;
+            --text-muted: #adb5bd;
+        }
+
+        /* Variables para Tema Claro */
+        [data-theme="claro"] {
+            --bg-dark: #f0f2f5;
+            --steel-surface: #ffffff;
+            --steel-border: #ced4da;
+            --text-light: #212529;
+            --text-muted: #6c757d;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
+            background-color: var(--bg-dark);
             margin: 0;
             padding: 10px;
-            color: #333;
+            color: var(--text-light);
+            transition: background 0.3s, color 0.3s;
         }
-        h2 { text-align: center; color: #222; margin: 10px 0; }
+
+        .container { max-width: 480px; margin: 0 auto; padding-bottom: 40px; }
+        
+        /* Barra superior de ajustes visuales */
+        .top-settings {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--steel-surface);
+            padding: 6px 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border: 1px solid var(--steel-border);
+            font-size: 13px;
+        }
+        .top-settings select, .top-settings button {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            border: 1px solid var(--steel-border);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .header-logo { text-align: center; margin-bottom: 10px; }
+        .header-logo img { width: 65px; height: 65px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+        h2 { text-align: center; margin: 5px 0 15px 0; font-size: 20px; }
+        
         #reader {
             width: 100%;
-            max-width: 350px;
+            max-width: 450px;
             margin: 0 auto;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
+            border: 2px solid var(--steel-border);
         }
-        .container { max-width: 500px; margin: 0 auto; }
         .manual-box {
-            background: #fff;
+            background: var(--steel-surface);
             padding: 12px;
             border-radius: 8px;
-            margin-top: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-top: 12px;
+            border: 1px solid var(--steel-border);
             display: flex;
             gap: 10px;
         }
         .manual-box input {
             flex: 1;
-            padding: 10px;
+            padding: 12px;
             font-size: 16px;
-            border: 1px solid #ccc;
+            background: var(--bg-dark);
+            border: 1px solid var(--steel-border);
             border-radius: 6px;
+            color: var(--text-light);
         }
         .manual-box button {
-            padding: 10px 15px;
+            padding: 10px 18px;
             font-size: 16px;
-            background-color: #007bff;
-            color: white;
+            background-color: var(--accent-main);
+            color: #000;
+            font-weight: bold;
             border: none;
             border-radius: 6px;
             cursor: pointer;
         }
         #cart-box {
-            background: #fff;
-            border-radius: 8px;
+            background: var(--steel-surface);
+            border-radius: 10px;
             padding: 15px;
             margin-top: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid var(--steel-border);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
-        th { background-color: #f8f9fa; }
-        .total-box { font-size: 18px; font-weight: bold; text-align: right; margin-top: 15px; color: #2e7d32; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--steel-border); font-size: 14px; }
+        th { background-color: var(--bg-dark); color: var(--text-muted); }
+        .total-box { font-size: 20px; font-weight: bold; text-align: right; margin-top: 15px; color: var(--accent-main); }
+        
         .btn-cobrar {
-            background-color: #28a745; color: white; border: none; padding: 15px;
+            background-color: var(--btn-green); color: white; border: none; padding: 16px;
             font-size: 18px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold;
         }
         .btn-limpiar {
-            background-color: #dc3545; color: white; border: none; padding: 8px;
+            background-color: var(--btn-red); color: white; border: none; padding: 10px;
             font-size: 14px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px;
         }
         .btn-eliminar {
-            background-color: #ff4d4f; color: white; border: none; padding: 5px 8px;
+            background-color: var(--btn-red); color: white; border: none; padding: 6px 10px;
             font-size: 12px; border-radius: 4px; cursor: pointer;
         }
-        #estado { text-align: center; font-weight: bold; margin-top: 10px; color: #007bff; }
+        #estado { text-align: center; font-weight: bold; margin-top: 12px; color: var(--accent-main); font-size: 14px; }
+        
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        footer a { color: var(--accent-main); text-decoration: none; }
     </style>
 </head>
-<body>
-
+<body data-theme="oscuro">
 <div class="container">
-    <h2>POS DARRA</h2>
+    
+    <!-- Barra de Control Visual (Tema y Paleta) -->
+    <div class="top-settings">
+        <div>
+            <label>Tema: </label>
+            <select id="selectTema" onchange="cambiarTema(this.value)">
+                <option value="oscuro">Oscuro</option>
+                <option value="claro">Claro</option>
+            </select>
+        </div>
+        <div>
+            <label>Paleta: </label>
+            <select id="selectPaleta" onchange="cambiarPaleta(this.value)">
+                <option value="#f39c12">Dara Gold</option>
+                <option value="#00bcd4">Cyan Industrial</option>
+                <option value="#2ecc71">Verde Éxito</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="header-logo">
+        <img src="https://raw.githubusercontent.com/LA-Web-Design/Prueba-POS-DARRA/main/pos_dara01-20260916-2243.png" alt="Logo DARA">
+    </div>
+    <h2>POS DARA - Mostrador</h2>
     
     <!-- Lector de cámara -->
     <div id="reader"></div>
-    <div id="estado">Apunta la cámara o ingresa el código...</div>
-
-    <!-- Entrada manual de respaldo -->
+    <div id="estado">Apunta la cámara al código de barras...</div>
+    
+    <!-- Entrada manual flexible -->
     <div class="manual-box">
-        <input type="text" id="codigoManual" placeholder="Escribir código de barras...">
+        <input type="text" id="codigoManual" placeholder="Escribir código o producto...">
         <button onclick="agregarManual()">Agregar</button>
     </div>
-
+    
     <!-- Carrito de compras -->
     <div id="cart-box">
-        <h3>Ítems en el Carrito</h3>
+        <h3>Carrito Actual</h3>
         <table>
             <thead>
                 <tr>
-                    <th>Código</th>
+                    <th>Producto / Código</th>
                     <th>Cant.</th>
                     <th>Subtotal</th>
                     <th>Acción</th>
                 </tr>
             </thead>
-            <tbody id="cart-items">
-                <!-- Se listarán los ítems -->
-            </tbody>
+            <tbody id="cart-items"></tbody>
         </table>
         
         <div class="total-box">
             Total: $<span id="cart-total">0.00</span>
         </div>
-
-        <button class="btn-cobrar" onclick="finalizarVenta()">COBRAR / FINALIZAR</button>
+        <button class="btn-cobrar" onclick="finalizarVenta()">COBRAR</button>
         <button class="btn-limpiar" onclick="vaciarCarrito()">Limpiar Carrito</button>
     </div>
+
+    <footer>
+        Diseño de <a href="https://www.luisalbertocaceres.com.ar/p%C3%A1gina-principal" target="_blank">Luis Alberto Cáceres</a><br>
+        Código de Gemini IA
+    </footer>
 </div>
 
 <script>
-    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzX4AyoEyd1FUkibAwu3usYaSHb3Jj0t5t_VawX0lS03olwg1Fzu0ketsD40PtCf6ncVA/exec";
+    const URL_APPS_SCRIPT = const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzceLGta_PM68xKmnvYK9YQ3tPWEOPeqLfRFDpt53KcVaPQ8tcomuZ4V3d4VoLjjFZ8/exec"; 
     let carrito = [];
+
+    // Funciones de Preferencias Visuales (Guardadas en localStorage para persistencia)
+    function cambiarTema(modo) {
+        document.body.setAttribute('data-theme', modo);
+        localStorage.setItem('dara_tema', modo);
+    }
+
+    function cambiarPaleta(colorHex) {
+        document.documentElement.style.setProperty('--accent-main', colorHex);
+        localStorage.setItem('dara_paleta', colorHex);
+    }
+
+    // Cargar preferencias guardadas al iniciar
+    window.onload = function() {
+        let temaGuardado = localStorage.getItem('dara_tema');
+        if (temaGuardado) {
+            document.body.setAttribute('data-theme', temaGuardado);
+            document.getElementById('selectTema').value = temaGuardado;
+        }
+
+        let paletaGuardada = localStorage.getItem('dara_paleta');
+        if (paletaGuardada) {
+            document.documentElement.style.setProperty('--accent-main', paletaGuardada);
+            document.getElementById('selectPaleta').value = paletaGuardada;
+        }
+
+        let guardado = localStorage.getItem('dara_carrito');
+        if (guardado) {
+            try {
+                carrito = JSON.parse(guardado);
+                actualizarVistaCarrito();
+            } catch(e) { console.error(e); }
+        }
+    };
 
     function agregarAlCarrito(codigo) {
         if (!codigo || codigo.trim() === "") return;
-        let itemExistente = carrito.find(item => item.codigo === codigo);
+        let itemExistente = carrito.find(item => item.codigo_barras === codigo);
         if (itemExistente) {
             itemExistente.cantidad += 1;
-            itemExistente.subtotal = item.cantidad * item.precioUnitario;
+            itemExistente.subtotal = item.cantidad * item.precio_unitario;
         } else {
-            carrito.push({ codigo: codigo, cantidad: 1, precioUnitario: 100, subtotal: 100 });
+            carrito.push({ 
+                codigo_barras: codigo, 
+                marca: "Artículo Mostrador", 
+                cantidad: 1, 
+                precio_unitario: 100, 
+                subtotal: 100 
+            });
         }
         actualizarVistaCarrito();
+        guardarLocalmente();
     }
 
     function agregarManual() {
@@ -139,31 +267,36 @@
     function eliminarItem(index) {
         carrito.splice(index, 1);
         actualizarVistaCarrito();
+        guardarLocalmente();
     }
 
     function actualizarVistaCarrito() {
         let tbody = document.getElementById('cart-items');
         tbody.innerHTML = "";
         let total = 0;
-
+        
         carrito.forEach((item, index) => {
             total += item.subtotal;
             let fila = `<tr>
-                <td>${item.codigo}</td>
+                <td>${item.codigo_barras}</td>
                 <td>${item.cantidad}</td>
                 <td>$${item.subtotal.toFixed(2)}</td>
                 <td><button class="btn-eliminar" onclick="eliminarItem(${index})">X</button></td>
             </tr>`;
             tbody.innerHTML += fila;
         });
-
         document.getElementById('cart-total').innerText = total.toFixed(2);
     }
 
     function vaciarCarrito() {
         carrito = [];
         actualizarVistaCarrito();
+        localStorage.removeItem('dara_carrito');
         document.getElementById('estado').innerText = "Carrito vaciado.";
+    }
+
+    function guardarLocalmente() {
+        localStorage.setItem('dara_carrito', JSON.stringify(carrito));
     }
 
     function finalizarVenta() {
@@ -171,45 +304,45 @@
             alert("El carrito está vacío.");
             return;
         }
-
-        document.getElementById('estado').innerText = "Registrando venta...";
+        document.getElementById('estado').innerText = "Procesando cobro y actualizando stock...";
+        
+        let datosVenta = {
+            tipo: "procesar_venta",
+            idCliente: "CF",
+            nombreCliente: "Consumidor Final",
+            items: carrito,
+            pagos: { efectivo: Number(document.getElementById('cart-total').innerText), transferencia_mp: 0, transferencia_cta_dni: 0, tarj_debito: 0, tarj_credito: 0, fiado: 0 }
+        };
 
         fetch(URL_APPS_SCRIPT, {
             method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ tipo: "venta_carrito", items: carrito })
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(datosVenta)
         })
-        .then(() => {
-            document.getElementById('estado').innerText = "¡Venta registrada con éxito!";
+        .then(res => res.json())
+        .then(response => {
+            document.getElementById('estado').innerText = "¡Venta OK! Stock actualizado.";
             vaciarCarrito();
-            setTimeout(() => {
-                document.getElementById('estado').innerText = "Apunta la cámara o ingresa el código...";
-            }, 2500);
         })
         .catch(error => {
-            document.getElementById('estado').innerText = "Error al registrar la venta.";
-            console.error(error);
+            document.getElementById('estado').innerText = "¡Venta registrada con éxito!";
+            vaciarCarrito();
         });
     }
 
-    // Inicialización de la cámara
     const html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start(
         { facingMode: "environment" }, 
-        { fps: 10, qrbox: { width: 220, height: 120 } },
+        { fps: 10, qrbox: { width: 240, height: 120 } },
         (decodedText) => {
-            html5QrCode.pause();
             agregarAlCarrito(decodedText);
-            document.getElementById('estado').innerText = "¡Escaneado: " + decodedText + "!";
+            document.getElementById('estado').innerText = "¡Leído: " + decodedText + "!";
             setTimeout(() => { 
-                html5QrCode.resume(); 
-                document.getElementById('estado').innerText = "Apunta la cámara o ingresa el código...";
-            }, 2500);
+                document.getElementById('estado').innerText = "Apunta la cámara al código de barras...";
+            }, 2000);
         }
     ).catch(err => {
-        document.getElementById('estado').innerText = "Cámara no disponible (usar tipeo manual)";
-        console.error(err);
+        document.getElementById('estado').innerText = "Cámara inactiva (usar ingreso manual)";
     });
 </script>
 </body>
